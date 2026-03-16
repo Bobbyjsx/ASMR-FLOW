@@ -5,11 +5,11 @@ import { Doc } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { useAuth } from '@/components/AuthProvider';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { VideoPlayer } from '@/components/ui/video-player';
-import { Loader2, AlertCircle, PlayCircle, Video as VideoIcon, Folder, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Loader2, AlertCircle, PlayCircle, Video as VideoIcon, Folder, ChevronRight, ArrowLeft, Clock, History } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 function timeAgo(dateInput: number) {
   const seconds = Math.floor((Date.now() - dateInput) / 1000);
@@ -48,184 +48,208 @@ export default function VideoManager() {
   const filteredVideos = selectedProjectId ? (projectGroups[selectedProjectId] || []) : [];
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
-        <div className="flex flex-col gap-2">
+    <div className="max-w-7xl mx-auto space-y-12 pb-12">
+      {/* Hero Header Section */}
+      <section className="relative overflow-hidden bg-primary/5 rounded-[2rem] p-8 md:p-12 border border-primary/10">
+        <div className="relative z-10 max-w-2xl">
           {selectedProjectId && (
             <button
               onClick={() => setSelectedProjectId(null)}
-              className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-medium mb-2 group"
+              className="flex items-center gap-2 text-primary hover:opacity-80 transition-all text-sm font-bold uppercase tracking-widest mb-6 group"
             >
               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
               Back to Projects
             </button>
           )}
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 leading-none">
-            {selectedProjectId ? selectedProject?.name : "Video Manager"}
+          <h1 className="text-4xl md:text-6xl font-serif font-bold text-foreground mb-4 leading-tight">
+            Video <span className="text-primary italic">Library</span>
           </h1>
+          <p className="text-lg text-muted-foreground mb-2 max-w-md">
+            {selectedProjectId 
+              ? `Exploring generations for "${selectedProject?.name}"`
+              : "Access all your AI-generated ASMR scenes and production assets in one place."}
+          </p>
           {selectedProjectId && (
-            <p className="text-slate-500 font-medium">
-              {filteredVideos.length} {filteredVideos.length === 1 ? 'scene' : 'scenes'} generated
-            </p>
+            <div className="flex items-center gap-2 text-primary font-bold bg-primary/10 w-fit px-4 py-1.5 rounded-full text-sm mt-4 border border-primary/20">
+              <History size={14} />
+              {filteredVideos.length} Total Generations
+            </div>
           )}
         </div>
-      </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-64 h-64 bg-accent/10 rounded-full blur-2xl" />
+      </section>
 
-      {/* Skeleton State */}
-      {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex flex-col bg-white border border-slate-200 rounded-[24px] shadow-sm p-0 overflow-hidden space-y-4">
-              <Skeleton className="aspect-[4/3] w-full rounded-none" />
-              <div className="p-6 space-y-4">
-                <Skeleton className="h-6 w-2/3" />
-                <Skeleton className="h-4 w-1/3" />
-                <div className="pt-4 border-t border-slate-100 space-y-2">
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-3 w-5/6" />
+      <div className="px-4">
+        {/* Skeleton State */}
+        {isLoading && (
+          <div className="flex flex-wrap gap-8">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex-1 min-w-[320px] max-w-full flex flex-col bg-card border border-border rounded-[2.5rem] p-0 overflow-hidden">
+                <Skeleton className="aspect-[4/3] w-full rounded-none" />
+                <div className="p-8 space-y-6">
+                  <Skeleton className="h-8 w-2/3 rounded-xl" />
+                  <Skeleton className="h-4 w-1/3 rounded-full" />
+                  <div className="pt-6 border-t border-border space-y-3">
+                    <Skeleton className="h-4 w-full rounded-full" />
+                    <Skeleton className="h-4 w-5/6 rounded-full" />
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && videoList.length === 0 && (
+          <div className="w-full flex flex-col items-center justify-center py-24 text-center bg-card/50 rounded-[3rem] border border-dashed border-border/60">
+            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-6 border border-border/40">
+              <VideoIcon size={40} className="text-muted-foreground/30" />
             </div>
-          ))}
-        </div>
-      )}
+            <h3 className="text-3xl font-serif font-bold text-foreground mb-3">No Videos Yet</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto italic">Start generating scenes from your projects to populate your library.</p>
+          </div>
+        )}
 
-      {/* Empty State */}
-      {!isLoading && videoList.length === 0 && (
-        <div className="col-span-full text-center py-24 text-slate-500 bg-slate-50/50 rounded-[24px] border border-dashed border-slate-200 shadow-sm flex flex-col items-center justify-center">
-          <VideoIcon size={48} className="mb-4 text-slate-300" />
-          <h3 className="text-xl font-bold text-slate-900 mb-2">No videos yet</h3>
-          <p className="text-slate-500 max-w-sm">Videos you generate for your project scenes will appear here.</p>
-        </div>
-      )}
+        {/* Project Folders View */}
+        {!isLoading && !selectedProjectId && videoList.length > 0 && (
+          <div className="flex flex-wrap gap-8">
+            {Object.entries(projectGroups).map(([projectId, groupVideos]) => {
+              const project = projects?.find((p: Doc<"projects">) => p._id === projectId);
+              const projectName = project ? project.name : "Unknown Project";
 
-      {/* Project Folders View */}
-      {!isLoading && !selectedProjectId && videoList.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {Object.entries(projectGroups).map(([projectId, groupVideos]) => {
-            const project = projects?.find((p: Doc<"projects">) => p._id === projectId);
-            const projectName = project ? project.name : "Unknown Project";
-
-            return (
-              <button
-                key={projectId}
-                onClick={() => setSelectedProjectId(projectId)}
-                className="group flex flex-col bg-white border border-slate-200 rounded-[24px] shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-slate-300 text-left cursor-pointer"
-              >
-                <div className="p-8 flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all duration-300 shadow-inner">
-                    <Folder size={32} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-bold text-slate-900 truncate group-hover:text-slate-900 transition-colors">
-                      {projectName}
-                    </h3>
-                    <p className="text-slate-500 font-medium flex items-center gap-1.5 mt-1">
-                      {groupVideos.length} {groupVideos.length === 1 ? 'scene' : 'scenes'}
-                      <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </p>
-                  </div>
-                </div>
-                <div className="px-8 pb-6 mt-auto">
-                  <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-900/10 w-full" />
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Scene List View (Inside Folder) */}
-      {!isLoading && selectedProjectId && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {filteredVideos.map((video: Doc<"videos">) => {
-            return (
-              <div key={video._id} className="flex flex-col bg-white border border-slate-200 rounded-[24px] shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-slate-300">
-                {/* Media Area */}
-                <div className="aspect-[4/3] bg-black relative flex items-center justify-center overflow-hidden">
-                  {video.status === 'completed' && video.url ? (
-                    <VideoPlayer
-                      src={video.url}
-                      className="w-full h-full"
-                    />
-                  ) : video.status === 'generating' ? (
-                    <div className="flex flex-col items-center text-white/70">
-                      <Loader2 className="animate-spin mb-3 text-white" size={32} />
-                      <span className="text-xs font-semibold tracking-widest uppercase">
-                        Generating {(video?.progress || 0) > 0 && `${Math.round(video.progress || 0)}%`}
-                      </span>
+              return (
+                <button
+                  key={projectId}
+                  onClick={() => setSelectedProjectId(projectId)}
+                  className="flex-1 min-w-[320px] max-w-full group flex flex-col bg-card border border-border/60 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-[0_32px_64px_-16px_rgba(99,102,241,0.12)] hover:border-primary/30 text-left cursor-pointer"
+                >
+                  <div className="p-10 flex items-center gap-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+                    
+                    <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-inner relative z-10">
+                      <Folder size={36} />
                     </div>
-                  ) : video.status === 'error' ? (
-                    <div className="flex flex-col items-center text-red-400">
-                      <AlertCircle className="mb-2" size={32} />
-                      <span className="text-xs font-semibold tracking-widest uppercase text-red-200">Failed</span>
-                    </div>
-                  ) : (
-                    <PlayCircle className="text-white/30" size={64} strokeWidth={1} />
-                  )}
-
-                  {/* Status Badge Overlays */}
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    {video.status === 'generating' && (
-                      <div className="bg-slate-900/80 backdrop-blur-md text-white border border-white/10 shadow-sm flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Generating
-                      </div>
-                    )}
-                    {video.status === 'completed' && (
-                      <div className="bg-slate-900/80 backdrop-blur-md text-white border border-white/10 shadow-sm flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-                        Ready
-                      </div>
-                    )}
-                    {video.status === 'error' && (
-                      <div className="bg-red-950/80 backdrop-blur-md text-red-200 border border-red-500/30 shadow-sm flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide">
-                        <AlertCircle className="h-3 w-3" />
-                        Error
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Details Area */}
-                <div className="p-6 flex flex-col flex-grow">
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="text-xl font-bold text-slate-900 line-clamp-1 pr-4">
-                      Scene {video.sceneIndex}
-                    </h3>
-                    <div className="bg-slate-100 text-slate-700 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider shrink-0">
-                      #{video._id.slice(-4)}
+                    <div className="flex-1 min-w-0 relative z-10">
+                      <h3 className="text-2xl font-serif font-bold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
+                        {projectName}
+                      </h3>
+                      <p className="text-primary font-bold flex items-center gap-2 mt-2 text-sm uppercase tracking-widest">
+                        {groupVideos.length} {groupVideos.length === 1 ? 'scene' : 'scenes'}
+                        <ChevronRight size={16} className="transition-transform group-hover:translate-x-1" />
+                      </p>
                     </div>
                   </div>
+                  <div className="px-10 pb-8 mt-auto">
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/20">
+                      <div className="h-full bg-primary/20 w-full" />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-                  <div className="pt-6 border-t border-slate-100 flex-grow">
-                    {video.error ? (
-                      <div className="bg-red-50 text-red-700 text-sm p-4 rounded-xl border border-red-100 font-medium">
-                        {video.error}
+        {/* Scene List View (Inside Folder) */}
+        {!isLoading && selectedProjectId && (
+          <div className="flex flex-wrap gap-8">
+            {filteredVideos.map((video: Doc<"videos">) => {
+              return (
+                <div key={video._id} className="flex-1 min-w-[320px] max-w-full group flex flex-col bg-card border border-border/60 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-[0_32px_64px_-16px_rgba(99,102,241,0.12)] hover:border-primary/30">
+                  {/* Media Area */}
+                  <div className="aspect-[4/3] bg-black relative flex items-center justify-center overflow-hidden">
+                    {video.status === 'completed' && video.url ? (
+                      <VideoPlayer
+                        src={video.url}
+                        className="w-full h-full"
+                      />
+                    ) : video.status === 'generating' ? (
+                      <div className="flex flex-col items-center text-white/70">
+                        <Loader2 className="animate-spin mb-3 text-white" size={32} />
+                        <span className="text-xs font-semibold tracking-widest uppercase">
+                          Generating {(video?.progress || 0) > 0 && `${Math.round(video.progress || 0)}%`}
+                        </span>
+                      </div>
+                    ) : video.status === 'error' ? (
+                      <div className="flex flex-col items-center text-red-400 p-6 text-center">
+                        <AlertCircle className="mb-3" size={40} />
+                        <span className="text-sm font-bold tracking-widest uppercase text-red-200">Production Error</span>
                       </div>
                     ) : (
-                      <div className="space-y-3 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-500 font-medium">Status</span>
-                          <span className="capitalize font-bold text-slate-900">{video.status}</span>
-                        </div>
-                        {video._creationTime && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">Created</span>
-                            <span className="text-slate-900 font-medium">{timeAgo(video._creationTime)}</span>
-                          </div>
-                        )}
-                      </div>
+                      <PlayCircle className="text-white/20" size={80} strokeWidth={1} />
                     )}
+
+                    {/* Status Badge Overlays */}
+                    <div className="absolute top-6 right-6 flex gap-2">
+                      {video.status === 'generating' && (
+                        <div className="bg-primary/90 backdrop-blur-md text-primary-foreground border border-white/10 shadow-lg flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Building
+                        </div>
+                      )}
+                      {video.status === 'completed' && (
+                        <div className="bg-accent/90 backdrop-blur-md text-accent-foreground border border-white/10 shadow-lg flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase">
+                          <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                          Ready
+                        </div>
+                      )}
+                      {video.status === 'error' && (
+                        <div className="bg-destructive/90 backdrop-blur-md text-destructive-foreground border border-white/10 shadow-lg flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase">
+                          <AlertCircle className="h-3 w-3" />
+                          Failed
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Details Area */}
+                  <div className="p-10 flex flex-col flex-grow">
+                    <div className="flex justify-between items-start mb-8">
+                      <div>
+                        <h3 className="text-2xl font-serif font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                          Scene {video.sceneIndex}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Clock size={12} className="text-muted-foreground" />
+                          <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                            Generated {timeAgo(video._creationTime || Date.now())}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="bg-muted px-3 py-1.5 rounded-xl text-muted-foreground text-[10px] font-bold tracking-widest uppercase border border-border/40 shrink-0">
+                        ID:{video._id.slice(-4)}
+                      </div>
+                    </div>
+
+                    <div className="pt-8 border-t border-border/40 flex-grow">
+                      {video.error ? (
+                        <div className="bg-destructive/5 text-destructive text-sm p-5 rounded-2xl border border-destructive/10 font-medium italic leading-relaxed">
+                          &quot;{video.error}&quot;
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center bg-muted/30 p-4 rounded-2xl border border-border/40">
+                            <span className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Generation Status</span>
+                            <span className={cn(
+                              "text-sm font-bold px-3 py-1 rounded-full",
+                              video.status === 'completed' ? "text-accent bg-accent/10" : "text-primary bg-primary/10"
+                            )}>
+                              {video.status.toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

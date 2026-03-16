@@ -5,7 +5,7 @@ import { Doc } from '@/convex/_generated/dataModel';
 import { AVAILABLE_LLM_MODELS, AVAILABLE_VIDEO_MODELS, AVAILABLE_RESOLUTIONS, AVAILABLE_ASPECT_RATIOS } from '@/types';
 import { getASMRists, saveProject } from '@/lib/store';
 import { generateScenes } from '@/lib/gemini';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { useAuth } from '@/components/AuthProvider';
@@ -226,7 +226,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
 
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Video Settings</h3>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <Label htmlFor="videoModel" className="text-foreground">AI Video Model</Label>
                   <Select
                     value={videoModel}
@@ -236,32 +236,43 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
                     triggerClassName="bg-background border-border text-foreground h-auto text-left"
                     options={configs?.filter(c => c.type === 'video_model').map(c => ({ label: c.label, value: c.value })) || []}
                   />
+                  
+                  {videoModel === 'veo-2.0-generate-001' && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3 animate-in fade-in duration-300">
+                      <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={16} />
+                      <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                        <span className="font-bold">Audio Disclaimer:</span> Veo 2.0 models currently do not support audio generation. Your video will be silent.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="resolution" className="text-foreground">Resolution</Label>
-                    <Select
-                      value={videoResolution}
-                      onValueChange={(val) => setVideoResolution(val || '')}
-                      required
-                      placeholder="Resolution"
-                      triggerClassName="bg-background border-border text-foreground"
-                      options={configs?.filter(c => c.type === 'video_resolution').map(c => ({ label: c.label, value: c.value })) || []}
-                    />
+                {videoModel !== 'veo-2.0-generate-001' && (
+                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="space-y-2">
+                      <Label htmlFor="resolution" className="text-foreground text-xs font-bold tracking-widest uppercase">Resolution</Label>
+                      <Select
+                        value={videoResolution}
+                        onValueChange={(val) => setVideoResolution(val || '')}
+                        required
+                        placeholder="Resolution"
+                        triggerClassName="bg-background border-border text-foreground"
+                        options={configs?.filter(c => c.type === 'video_resolution').map(c => ({ label: c.label, value: c.value })) || []}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="aspectRatio" className="text-foreground text-xs font-bold tracking-widest uppercase">Aspect Ratio</Label>
+                      <Select
+                        value={videoAspectRatio}
+                        onValueChange={(val) => setVideoAspectRatio(val || '')}
+                        required
+                        placeholder="Ratio"
+                        triggerClassName="bg-background border-border text-foreground"
+                        options={configs?.filter(c => c.type === 'video_aspect_ratio').map(c => ({ label: c.label, value: c.value })) || []}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="aspectRatio" className="text-foreground">Aspect Ratio</Label>
-                    <Select
-                      value={videoAspectRatio}
-                      onValueChange={(val) => setVideoAspectRatio(val || '')}
-                      required
-                      placeholder="Ratio"
-                      triggerClassName="bg-background border-border text-foreground"
-                      options={configs?.filter(c => c.type === 'video_aspect_ratio').map(c => ({ label: c.label, value: c.value })) || []}
-                    />
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 

@@ -6,9 +6,9 @@
 
 ---
 
-**Project:** ASMR Flow
-**Generated:** 2026-03-16 15:10:47
-**Category:** Video Streaming/OTT
+**Project:** asmr-flow
+**Generated:** 2026-03-16 22:22:16
+**Category:** Remote Work/Collaboration Tool
 
 ---
 
@@ -18,24 +18,24 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#DC2626` | `--color-primary` |
-| Secondary | `#F87171` | `--color-secondary` |
-| CTA/Accent | `#CA8A04` | `--color-cta` |
-| Background | `#FEF2F2` | `--color-background` |
-| Text | `#450A0A` | `--color-text` |
+| Primary | `#6366F1` | `--color-primary` |
+| Secondary | `#818CF8` | `--color-secondary` |
+| CTA/Accent | `#10B981` | `--color-cta` |
+| Background | `#F5F3FF` | `--color-background` |
+| Text | `#312E81` | `--color-text` |
 
-**Color Notes:** Appetizing red + warm gold
+**Color Notes:** Midnight Indigo + Wellness Teal
 
 ### Typography
 
-- **Heading Font:** Fredoka
-- **Body Font:** Nunito
-- **Mood:** playful, friendly, fun, creative, warm, approachable
-- **Google Fonts:** [Fredoka + Nunito](https://fonts.google.com/share?selection.family=Fredoka:wght@400;500;600;700|Nunito:wght@300;400;500;600;700)
+- **Heading Font:** Lora
+- **Body Font:** Raleway
+- **Mood:** calm, wellness, health, relaxing, natural, organic
+- **Google Fonts:** [Lora + Raleway](https://fonts.google.com/share?selection.family=Lora:wght@400;500;600;700|Raleway:wght@300;400;500;600;700)
 
 **CSS Import:**
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
 ```
 
 ### Spacing Variables
@@ -68,7 +68,7 @@
 ```css
 /* Primary Button */
 .btn-primary {
-  background: #CA8A04;
+  background: #F97316;
   color: white;
   padding: 12px 24px;
   border-radius: 8px;
@@ -85,8 +85,8 @@
 /* Secondary Button */
 .btn-secondary {
   background: transparent;
-  color: #DC2626;
-  border: 2px solid #DC2626;
+  color: #EC4899;
+  border: 2px solid #EC4899;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -99,7 +99,7 @@
 
 ```css
 .card {
-  background: #FEF2F2;
+  background: #FDF2F8;
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow-md);
@@ -125,9 +125,9 @@
 }
 
 .input:focus {
-  border-color: #DC2626;
+  border-color: #EC4899;
   outline: none;
-  box-shadow: 0 0 0 3px #DC262620;
+  box-shadow: 0 0 0 3px #EC489920;
 }
 ```
 
@@ -153,13 +153,13 @@
 
 ## Style Guidelines
 
-**Style:** Dark Mode (OLED)
+**Style:** Soft UI Evolution
 
-**Keywords:** Dark theme, low light, high contrast, deep black, midnight blue, eye-friendly, OLED, night mode, power efficient
+**Keywords:** Evolved soft UI, better contrast, modern aesthetics, subtle depth, accessibility-focused, improved shadows, hybrid
 
-**Best For:** Night-mode apps, coding platforms, entertainment, eye-strain prevention, OLED devices, low-light
+**Best For:** Modern enterprise apps, SaaS platforms, health/wellness, modern business tools, professional, hybrid
 
-**Key Effects:** Minimal glow (text-shadow: 0 0 10px), dark-to-light transitions, low white emission, high readability, visible focus
+**Key Effects:** Improved shadows (softer than flat, clearer than neumorphism), modern (200-300ms), focus visible, WCAG AA/AAA
 
 ### Page Pattern
 
@@ -173,8 +173,8 @@
 
 ## Anti-Patterns (Do NOT Use)
 
-- ❌ Static layout
-- ❌ Slow video player
+- ❌ Cluttered interface
+- ❌ No presence
 
 ### Additional Forbidden Patterns
 

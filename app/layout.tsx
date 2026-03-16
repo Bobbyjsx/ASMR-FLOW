@@ -2,12 +2,13 @@ import type { Metadata } from 'next';
 import './globals.css'; // Global styles
 import ConvexClientProvider from "./ConvexClientProvider";
 import { AuthProvider } from "@/components/AuthProvider";
-import { Geist } from "next/font/google";
+import { Raleway, Lora } from "next/font/google";
 import { cn } from "@/lib/utils";
 import VideoPollingManager from "@/components/VideoPollingManager";
 import { Toaster } from "@/components/ui/sonner";
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
+const raleway = Raleway({ subsets: ['latin'], variable: '--font-sans' });
+const lora = Lora({ subsets: ['latin'], variable: '--font-serif' });
 
 export const metadata: Metadata = {
   title: 'ASMR Flow',
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en" className={cn("font-sans", raleway.variable, lora.variable)}>
       <body suppressHydrationWarning>
         <ConvexClientProvider>
           <AuthProvider>
