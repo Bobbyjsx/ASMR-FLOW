@@ -36,8 +36,8 @@ export default function Sidebar() {
             onClick={handleNavClick}
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300",
-              link.isActive 
-                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+              link.isActive
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                 : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
             )}
           >
@@ -60,7 +60,7 @@ export default function Sidebar() {
           <span className="font-serif font-bold text-foreground">ASMR Flow</span>
         </div>
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-          <SheetTrigger asChild>
+          <SheetTrigger>
             <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Menu size={24} />
             </Button>
@@ -77,9 +77,9 @@ export default function Sidebar() {
               {renderNavLinks()}
             </nav>
             <div className="p-6 border-t border-border/50">
-              <button 
-                type="button" 
-                onClick={logout} 
+              <button
+                type="button"
+                onClick={logout}
                 className="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-destructive/5 transition-all text-left text-sm font-semibold text-muted-foreground hover:text-destructive group"
               >
                 <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold group-hover:bg-destructive/10 group-hover:text-destructive transition-colors">
@@ -100,15 +100,15 @@ export default function Sidebar() {
           </div>
           <span className="text-xl font-serif font-bold tracking-tight text-foreground">ASMR Flow</span>
         </div>
-        
+
         <nav className="flex-1 px-4 overflow-y-auto">
           {renderNavLinks()}
         </nav>
-        
+
         <div className="p-6 border-t border-border/50">
-          <button 
-            type="button" 
-            onClick={logout} 
+          <button
+            type="button"
+            onClick={logout}
             className="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-destructive/5 transition-all text-left text-sm font-semibold text-muted-foreground hover:text-destructive group"
           >
             <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold group-hover:bg-destructive/10 group-hover:text-destructive transition-colors shadow-sm">
