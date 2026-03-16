@@ -13,9 +13,9 @@ export function middleware(request: NextRequest) {
 
   if (!userId && !isPublicRoute) {
     // If user is not authenticated and trying to access a protected route
-    // Redirect to the auth page instead of landing to keep the experience clean
+    // Redirect to the landing page per user request
     const url = request.nextUrl.clone();
-    url.pathname = '/auth';
+    url.pathname = '/landing';
     return NextResponse.redirect(url);
   }
 
