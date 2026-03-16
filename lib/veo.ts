@@ -1,7 +1,13 @@
 import { GoogleGenAI } from '@google/genai';
 import { GEMINI_API_KEY } from './environment';
 
-export const startVideoGeneration = async (scenePrompt: string) => {
+interface VideoGenerationOptions {
+  model?: string;
+  resolution?: string;
+  aspectRatio?: string;
+}
+
+export const startVideoGeneration = async (scenePrompt: string, options?: VideoGenerationOptions) => {
   // @ts-ignore
   if (window.aistudio && !await window.aistudio.hasSelectedApiKey()) {
     // @ts-ignore
@@ -18,12 +24,12 @@ export const startVideoGeneration = async (scenePrompt: string) => {
   const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
   const operation = await ai.models.generateVideos({
-    model: 'veo-3.1-fast-generate-preview',
+    model: options?.model || 'veo-3.1-fast-generate-preview',
     prompt: scenePrompt,
     config: {
       numberOfVideos: 1,
-      resolution: '1080p',
-      aspectRatio: '16:9'
+      resolution: options?.resolution || '1080p',
+      aspectRatio: options?.aspectRatio || '16:9'
     }
   });
 
@@ -33,9 +39,18 @@ export const startVideoGeneration = async (scenePrompt: string) => {
 export const checkVideoOperation = async (operationName: string) => {
   if (!GEMINI_API_KEY) throw new Error("API Key not found in environment.");
   
-  const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  const operation = await ai.operations.getVideosOperation({ operation: { name: operationName } as any });
-  
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1alpha/${operationName}?key=${GEMINI_API_KEY}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to check video operation: ${response.statusText}`);
+  }
+
+  const operation = await response.json();
   return operation;
 };
 

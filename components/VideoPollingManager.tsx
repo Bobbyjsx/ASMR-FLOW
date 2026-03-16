@@ -31,8 +31,13 @@ export default function VideoPollingManager() {
             const operation = await checkVideoOperation(video.operationId);
             
             if (operation.done) {
-              const uri = operation.response?.generatedVideos?.[0]?.video?.uri;
-              if (!uri) throw new Error("No video URI in completed operation");
+              const uri = operation.response?.generatedVideos?.[0]?.video?.uri || 
+                          operation.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+              
+              if (!uri) {
+                console.error("Operation completed but no URI found:", operation);
+                throw new Error("No video URI in completed operation");
+              }
               
               const blob = await downloadVideoBlob(uri);
               

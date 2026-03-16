@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, PlayCircle, Sparkles, Users, Video, Zap, Shield, Globe, ArrowRight, FileText } from "lucide-react";
+import { Sparkles, Users, Video, Zap, Shield, Globe, ArrowRight, FileText, PlayCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function LandingPage() {
@@ -72,142 +72,275 @@ export default function LandingPage() {
       </section>
 
       {/* Pipeline Visualization */}
-      <section id="pipeline" className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">The ASMR Production Pipeline</h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">From concept to final render in minutes, not days.</p>
+      <section id="pipeline" className="py-24 bg-slate-50 relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-[100px] -translate-y-1/2 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-100/50 rounded-full blur-[80px] translate-y-1/2 pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-20">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm font-medium mb-4">
+               <Video size={14} /> Simplified Workflow
+            </span>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">The ASMR Production Pipeline</h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">From concept to final high-fidelity render in three simple steps.</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 relative">
-            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-blue-100 via-blue-300 to-blue-100 -translate-y-1/2 z-0"></div>
+            {/* Connecting Line (Desktop) */}
+            <div className="hidden md:block absolute top-[4.5rem] left-[16.66%] right-[16.66%] h-0.5 bg-gradient-to-r from-blue-200 via-indigo-300 to-purple-200 z-0"></div>
             
             {[
-              { step: "01", title: "Character Design", desc: "Define your ASMRist's physical traits, personality, and style.", icon: Users },
-              { step: "02", title: "Script Generation", desc: "AI crafts perfectly timed dialogue with entry/exit animations.", icon: FileText },
-              { step: "03", title: "Video Rendering", desc: "High-fidelity video generation using Veo technology.", icon: Video },
+              { 
+                step: "01", 
+                title: "Character Design", 
+                desc: "Define your ASMRist's physical traits, personality, and visual style.", 
+                icon: Users,
+                gradient: "from-blue-500 to-cyan-500",
+                shadow: "shadow-blue-500/20"
+              },
+              { 
+                step: "02", 
+                title: "Script Generation", 
+                desc: "AI crafts perfectly timed dialogue with entry/exit animations and cues.", 
+                icon: FileText,
+                gradient: "from-indigo-500 to-blue-500",
+                shadow: "shadow-indigo-500/20"
+              },
+              { 
+                step: "03", 
+                title: "Video Rendering", 
+                desc: "High-fidelity video generation using Veo technology for realistic output.", 
+                icon: Video,
+                gradient: "from-purple-500 to-indigo-500",
+                shadow: "shadow-purple-500/20"
+              },
             ].map((item, i) => {
               const Icon = item.icon || Sparkles;
               return (
-                <Card key={i} className="relative z-10 bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 border border-blue-100">
-                      <Icon size={24} />
+                <div key={i} className="relative z-10 flex flex-col items-center">
+                  {/* Step Node */}
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.gradient} text-white flex items-center justify-center mb-6 shadow-xl ${item.shadow} ring-4 ring-white relative z-10 group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon size={28} />
+                  </div>
+                  
+                  {/* Card Content */}
+                  <div className="bg-white rounded-2xl p-8 text-center border border-slate-200/60 shadow-lg shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 w-full relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 text-6xl font-black text-slate-50 select-none group-hover:text-slate-100 transition-colors duration-300 -mt-4 -mr-2">
+                      {item.step}
                     </div>
-                    <CardTitle className="text-xl">{item.title}</CardTitle>
-                    <CardDescription className="text-base">{item.desc}</CardDescription>
-                  </CardHeader>
-                </Card>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3 relative z-10">{item.title}</h3>
+                    <p className="text-slate-500 text-[15px] leading-relaxed relative z-10">{item.desc}</p>
+                  </div>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* Feature Showcase */}
-      <section id="features" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Everything you need to build your ASMR empire</h2>
-              <div className="space-y-8">
-                {[
-                  { title: "Consistent Characters", desc: "Maintain visual consistency across multiple videos with saved ASMRist profiles." },
-                  { title: "Trigger Management", desc: "Automatically inject audio-visual triggers like tapping, whispering, and brushing." },
-                  { title: "Cloud Storage", desc: "All your projects and renders are securely stored and synced in real-time." }
-                ].map((feature, i) => (
-                  <div key={i} className="flex gap-4">
-                    <div className="mt-1 bg-blue-100 text-blue-600 rounded-full p-1 h-fit">
-                      <CheckCircle2 size={20} />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-slate-900 mb-2">{feature.title}</h3>
-                      <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-slate-100 rounded-2xl p-8 border border-slate-200 shadow-inner">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                </div>
-                <div className="p-6 space-y-4">
-                  <div className="h-4 bg-slate-100 rounded w-1/3"></div>
-                  <div className="h-32 bg-slate-50 rounded border border-slate-100 flex items-center justify-center">
-                    <PlayCircle className="text-slate-300" size={48} />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-slate-100 rounded w-full"></div>
-                    <div className="h-3 bg-slate-100 rounded w-5/6"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Success Stories */}
-      <section id="stories" className="py-24 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Feature Showcase — Bento Grid */}
+      <section id="features" className="py-28 bg-white relative overflow-hidden">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] bg-[size:20px_20px] opacity-50"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Trusted by top creators</h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">See how ASMR Flow is transforming content creation.</p>
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-medium mb-4">
+              <Zap size={14} /> Powerful Features
+            </span>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">Everything you need to build<br className="hidden md:block" /> your ASMR empire</h2>
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">From AI-powered scripting to seamless video rendering, every tool is designed for creators who demand the best.</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="bg-slate-800 border-slate-700 text-slate-100">
-              <CardContent className="pt-6">
-                <div className="flex text-amber-400 mb-4">
-                  {[...Array(5)].map((_, i) => <Sparkles key={i} size={16} className="mr-1" />)}
-                </div>
-                <p className="text-lg italic mb-6 text-slate-300">&quot;ASMR Flow cut my production time by 80%. The AI scripts understand pacing and triggers perfectly. It&apos;s like having a full production team.&quot;</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center font-bold text-xl">L</div>
-                  <div>
-                    <p className="font-semibold">Lumina ASMR</p>
-                    <p className="text-sm text-slate-400">1.2M Subscribers</p>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: <Users size={24} />,
+                title: "Consistent Characters",
+                desc: "Maintain visual consistency across multiple videos with saved ASMRist profiles that remember every detail.",
+                gradient: "from-blue-500 to-indigo-600",
+                bgGlow: "bg-blue-500/10",
+              },
+              // {
+              //   icon: <Zap size={24} />,
+              //   title: "Smart Trigger System",
+              //   desc: "Automatically inject and time audio-visual triggers — tapping, whispering, brushing — with AI precision.",
+              //   gradient: "from-amber-500 to-orange-600",
+              //   bgGlow: "bg-amber-500/10",
+              // },
+              {
+                icon: <Shield size={24} />,
+                title: "Secure Cloud Storage",
+                desc: "All your projects and renders are encrypted, securely stored, and synced across devices in real-time.",
+                gradient: "from-emerald-500 to-teal-600",
+                bgGlow: "bg-emerald-500/10",
+              },
+              {
+                icon: <Video size={24} />,
+                title: "AI Video Generation",
+                desc: "Generate high-fidelity ASMR scenes from text descriptions using state-of-the-art AI video models.",
+                gradient: "from-violet-500 to-purple-600",
+                bgGlow: "bg-violet-500/10",
+              },
+              {
+                icon: <FileText size={24} />,
+                title: "Script Intelligence",
+                desc: "AI writes pacing-aware scripts with built-in trigger cues, dialogue timings, and scene transitions.",
+                gradient: "from-pink-500 to-rose-600",
+                bgGlow: "bg-pink-500/10",
+              },
+              {
+                icon: <Globe size={24} />,
+                title: "Publish Anywhere",
+                desc: "Export in any format. One-click optimized renders for YouTube, TikTok, Instagram, and more.",
+                gradient: "from-cyan-500 to-blue-600",
+                bgGlow: "bg-cyan-500/10",
+              },
+            ].map((feature, i) => (
+              <Card
+                key={feature.title}
+                className={`group relative border border-slate-200/80 bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 hover:-translate-y-1 cursor-default overflow-hidden ${
+                  i === 0 ? "md:col-span-2 lg:col-span-1" : ""
+                }`}
+              >
+                <div className={`absolute top-0 right-0 w-40 h-40 rounded-full ${feature.bgGlow} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -translate-y-1/2 translate-x-1/2`}></div>
+                <CardContent className="pt-8 pb-7 px-7 relative z-10">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} text-white flex items-center justify-center mb-5 shadow-lg shadow-slate-900/10`}>
+                    {feature.icon}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-slate-800 border-slate-700 text-slate-100">
-              <CardContent className="pt-6">
-                <div className="flex text-amber-400 mb-4">
-                  {[...Array(5)].map((_, i) => <Sparkles key={i} size={16} className="mr-1" />)}
-                </div>
-                <p className="text-lg italic mb-6 text-slate-300">&quot;The character consistency is mind-blowing. I can generate multiple scenes with the exact same persona. Absolute game-changer.&quot;</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center font-bold text-xl">S</div>
-                  <div>
-                    <p className="font-semibold">Sleepy Whispers</p>
-                    <p className="text-sm text-slate-400">850K Subscribers</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h3>
+                  <p className="text-slate-500 leading-relaxed text-[15px]">{feature.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Login / CTA Section */}
-      <section className="py-24 bg-blue-600">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Ready to start your journey?</h2>
-          <p className="text-xl text-blue-100 mb-10">Join thousands of creators building the future of ASMR content.</p>
-          
-          <Button 
-            size="lg" 
-            className="h-14 px-8 text-lg bg-white text-blue-600 hover:bg-slate-50 shadow-xl transition-transform hover:scale-105"
-            render={
-              <Link href="/auth">
-                Enter the Studio <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            }
-          />
+      {/* Testimonials — Glassmorphic Cards */}
+      <section id="stories" className="py-28 relative overflow-hidden bg-slate-950">
+        {/* Animated gradient blobs */}
+        <div className="absolute top-[-15%] left-[-5%] w-[35%] h-[35%] rounded-full bg-blue-600/20 blur-[100px] animate-pulse"></div>
+        <div className="absolute bottom-[-15%] right-[-5%] w-[35%] h-[35%] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse" style={{ animationDelay: '3s' }}></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-blue-300 text-sm font-medium mb-4 backdrop-blur-sm">
+              <Users size={14} /> Creator Testimonials
+            </span>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-5 tracking-tight">Loved by creators<br className="hidden md:block" /> around the world</h2>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">Hear from real creators who have transformed their ASMR content workflow.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                quote: "ASMR Flow cut my production time by 80%. The AI scripts understand pacing and triggers perfectly. It's like having a full production team in my pocket.",
+                name: "Lumina ASMR",
+                role: "1.2M Subscribers",
+                initials: "LA",
+                accent: "from-blue-500 to-indigo-500",
+              },
+              {
+                quote: "The character consistency is mind-blowing. I can generate multiple scenes with the exact same persona across weeks of content. Absolute game-changer.",
+                name: "Sleepy Whispers",
+                role: "850K Subscribers",
+                initials: "SW",
+                accent: "from-violet-500 to-purple-500",
+              },
+              {
+                quote: "I went from spending entire weekends on one video to publishing three a week. The AI handles the heavy lifting while I focus on creative direction.",
+                name: "Gentle Rain",
+                role: "620K Subscribers",
+                initials: "GR",
+                accent: "from-emerald-500 to-teal-500",
+              },
+            ].map((testimonial) => (
+              <div
+                key={testimonial.name}
+                className="group relative rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/[0.08] p-7 hover:bg-white/[0.08] hover:border-white/[0.15] transition-all duration-300"
+              >
+                {/* Quote mark */}
+                <div className="absolute top-5 right-6 text-6xl font-serif text-white/[0.06] leading-none select-none">&ldquo;</div>
+
+                {/* Star rating */}
+                <div className="flex gap-1 mb-5">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={`star-${testimonial.name}-${i}`} width="16" height="16" viewBox="0 0 24 24" fill="#FBBF24" className="drop-shadow-sm">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                  ))}
+                </div>
+
+                <p className="text-slate-300 leading-relaxed text-[15px] mb-8 relative z-10">{testimonial.quote}</p>
+
+                <div className="flex items-center gap-3 pt-5 border-t border-white/[0.08]">
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${testimonial.accent} flex items-center justify-center text-white text-xs font-bold shadow-lg`}>
+                    {testimonial.initials}
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">{testimonial.name}</p>
+                    <p className="text-slate-500 text-xs">{testimonial.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative py-28 overflow-hidden bg-slate-950">
+        {/* Ambient gradient blobs */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-600/15 blur-[120px]"></div>
+        <div className="absolute top-0 right-0 w-[300px] h-[300px] rounded-full bg-indigo-500/10 blur-[100px]"></div>
+        <div className="absolute bottom-0 left-0 w-[250px] h-[250px] rounded-full bg-violet-500/10 blur-[100px]"></div>
+
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-10 md:p-14 text-center">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm font-medium mb-6">
+              <Sparkles size={14} /> Now in Early Access
+            </span>
+
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight">Your ASMR studio, reimagined</h2>
+            <p className="text-lg text-slate-400 mb-10 max-w-xl mx-auto leading-relaxed">We&apos;re building the tools creators have been asking for. Get in early and help shape the future of ASMR production.</p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+              <Button
+                size="lg"
+                className="h-13 px-8 text-base bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:scale-[1.03] font-semibold cursor-pointer border-0"
+                render={
+                  <Link href="/auth">
+                    Get Early Access <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                }
+              />
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-13 px-8 text-base border-white/15 text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 cursor-pointer"
+                render={
+                  <Link href="#pipeline">
+                    See How It Works
+                  </Link>
+                }
+              />
+            </div>
+
+            {/* Feature pills */}
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {[
+                { icon: <Zap size={14} />, label: "AI Scripts" },
+                { icon: <Video size={14} />, label: "Video Generation" },
+                { icon: <Users size={14} />, label: "Character Profiles" },
+                { icon: <Shield size={14} />, label: "Secure Storage" },
+              ].map((item) => (
+                <span key={item.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-slate-400 text-xs font-medium">
+                  {item.icon} {item.label}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

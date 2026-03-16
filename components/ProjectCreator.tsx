@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ASMRist, Project } from '@/types';
+import { ASMRist, Project, AVAILABLE_LLM_MODELS, AVAILABLE_VIDEO_MODELS, AVAILABLE_RESOLUTIONS, AVAILABLE_ASPECT_RATIOS } from '@/types';
 import { getASMRists, saveProject } from '@/lib/store';
 import { generateScenes } from '@/lib/gemini';
 import { Loader2, ArrowRight } from 'lucide-react';
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ProjectCreatorProps {
@@ -23,7 +23,9 @@ interface ProjectCreatorProps {
 export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCreatorProps) {
   const { userId } = useAuth();
   const asmrists = useQuery(anyApi.asmrists.get, userId ? { userId } : "skip");
+  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip");
   const createProject = useMutation(anyApi.projects.create);
+  const configs = useQuery(anyApi.configurations.listEnabled);
 
   const [selectedAsmristId, setSelectedAsmristId] = useState('');
   const [theme, setTheme] = useState('');
@@ -32,11 +34,37 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
 
+  // Advanced settings state
+  const [llmModel, setLlmModel] = useState('');
+  const [videoModel, setVideoModel] = useState('');
+  const [videoResolution, setVideoResolution] = useState('');
+  const [videoAspectRatio, setVideoAspectRatio] = useState('');
+
   useEffect(() => {
     if (asmrists && asmrists.length > 0 && !selectedAsmristId) {
       setSelectedAsmristId(asmrists[0]._id);
     }
   }, [asmrists, selectedAsmristId]);
+
+  // Set default configurations
+  useEffect(() => {
+    if (configs && configs.length > 0) {
+      const llmModels = configs.filter(c => c.type === 'llm_model');
+      const videoModels = configs.filter(c => c.type === 'video_model');
+      const resolutions = configs.filter(c => c.type === 'video_resolution');
+      const aspectRatios = configs.filter(c => c.type === 'video_aspect_ratio');
+
+      const defaultLlm = llmModels.find(c => c.is_default) || llmModels[0];
+      const defaultVideo = videoModels.find(c => c.is_default) || videoModels[0];
+      const defaultResolution = resolutions.find(c => c.is_default) || resolutions[0];
+      const defaultAspectRatio = aspectRatios.find(c => c.is_default) || aspectRatios[0];
+
+      if (defaultLlm && !llmModel) setLlmModel(defaultLlm.value);
+      if (defaultVideo && !videoModel) setVideoModel(defaultVideo.value);
+      if (defaultResolution && !videoResolution) setVideoResolution(defaultResolution.value);
+      if (defaultAspectRatio && !videoAspectRatio) setVideoAspectRatio(defaultAspectRatio.value);
+    }
+  }, [configs, llmModel, videoModel, videoResolution, videoAspectRatio]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,8 +80,16 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
       const selectedAsmrist = asmrists?.find((a: any) => a._id === selectedAsmristId);
       if (!selectedAsmrist) throw new Error("ASMRist not found");
 
-      const scenes = await generateScenes(theme, length, selectedAsmrist.description);
+      // Check project creation limit
+      const maxProjectsConfig = configs?.find(c => c.type === 'max_project_creation');
+      const maxProjects = maxProjectsConfig ? parseInt(maxProjectsConfig.value, 10) : Infinity;
       
+      if ((projects?.length || 0) >= maxProjects) {
+        throw new Error(`Project limit reached (${maxProjects}). Please delete an existing project before creating a new one.`);
+      }
+
+      const scenes = await generateScenes(theme, length, selectedAsmrist.description, llmModel);
+
       if (!scenes || scenes.length === 0) {
         throw new Error("Failed to generate scenes. Please try again.");
       }
@@ -65,6 +101,10 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
         asmristId: selectedAsmristId,
         userId,
         scenes,
+        llmModel,
+        videoModel,
+        videoResolution,
+        videoAspectRatio,
         createdAt: Date.now()
       });
 
@@ -99,7 +139,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-6 mt-4 md:mt-8">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 mt-4 md:mt-8">
       <Card className="border-border shadow-md bg-card transition-all duration-300">
         <CardHeader>
           <CardTitle className="text-3xl font-bold tracking-tight text-card-foreground">New ASMR Project</CardTitle>
@@ -115,7 +155,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
           <form onSubmit={handleGenerate} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-foreground">Project Name</Label>
-              <Input 
+              <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -127,21 +167,19 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
 
             <div className="space-y-2">
               <Label htmlFor="asmrist" className="text-foreground">Select ASMRist</Label>
-              <Select value={selectedAsmristId} onValueChange={(val) => setSelectedAsmristId(val || '')} required>
-                <SelectTrigger id="asmrist" className="bg-background border-border text-foreground">
-                  <SelectValue placeholder="Select an ASMRist" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  {asmrists.map((a: any) => (
-                    <SelectItem key={a._id} value={a._id} className="text-card-foreground focus:bg-accent/10 focus:text-foreground">{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                value={selectedAsmristId}
+                onValueChange={(val) => setSelectedAsmristId(val || '')}
+                required
+                placeholder="Select an ASMRist"
+                triggerClassName="bg-background border-border text-foreground"
+                options={asmrists?.map((a: any) => ({ label: a.name, value: a._id })) || []}
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="theme" className="text-foreground">Theme / Vibe</Label>
-              <Textarea 
+              <Textarea
                 id="theme"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
@@ -153,22 +191,82 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
 
             <div className="space-y-2">
               <Label htmlFor="length" className="text-foreground">Total Length</Label>
-              <Select value={length} onValueChange={(val) => setLength(val || '')} required>
-                <SelectTrigger id="length" className="bg-background border-border text-foreground">
-                  <SelectValue placeholder="Select length" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  <SelectItem value="30 seconds (4 scenes)" className="text-card-foreground focus:bg-accent/10 focus:text-foreground">30 seconds (4 scenes)</SelectItem>
-                  <SelectItem value="1 minute (8 scenes)" className="text-card-foreground focus:bg-accent/10 focus:text-foreground">1 minute (8 scenes)</SelectItem>
-                  <SelectItem value="2 minutes (16 scenes)" className="text-card-foreground focus:bg-accent/10 focus:text-foreground">2 minutes (16 scenes)</SelectItem>
-                  <SelectItem value="3 minutes (24 scenes)" className="text-card-foreground focus:bg-accent/10 focus:text-foreground">3 minutes (24 scenes)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Select
+                value={length}
+                onValueChange={(val) => setLength(val || '')}
+                required
+                placeholder="Select length"
+                triggerClassName="bg-background border-border text-foreground"
+                options={[
+                  { label: "30 seconds (4 scenes)", value: "30 seconds (4 scenes)" },
+                  { label: "1 minute (8 scenes)", value: "1 minute (8 scenes)" },
+                  { label: "2 minutes (16 scenes)", value: "2 minutes (16 scenes)" },
+                  { label: "3 minutes (24 scenes)", value: "3 minutes (24 scenes)" },
+                ]}
+              />
+            </div>
+
+            {/* Advanced Settings Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Script Settings</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="llmModel" className="text-foreground">AI Script Model</Label>
+                  <Select
+                    value={llmModel}
+                    onValueChange={(val) => setLlmModel(val || '')}
+                    required
+                    placeholder="Select Model"
+                    triggerClassName="bg-background border-border text-foreground h-auto text-left"
+                    options={configs?.filter(c => c.type === 'llm_model').map(c => ({ label: c.label, value: c.value })) || []}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Video Settings</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="videoModel" className="text-foreground">AI Video Model</Label>
+                  <Select
+                    value={videoModel}
+                    onValueChange={(val) => setVideoModel(val || '')}
+                    required
+                    placeholder="Select Video Model"
+                    triggerClassName="bg-background border-border text-foreground h-auto text-left"
+                    options={configs?.filter(c => c.type === 'video_model').map(c => ({ label: c.label, value: c.value })) || []}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="resolution" className="text-foreground">Resolution</Label>
+                    <Select
+                      value={videoResolution}
+                      onValueChange={(val) => setVideoResolution(val || '')}
+                      required
+                      placeholder="Resolution"
+                      triggerClassName="bg-background border-border text-foreground"
+                      options={configs?.filter(c => c.type === 'video_resolution').map(c => ({ label: c.label, value: c.value })) || []}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="aspectRatio" className="text-foreground">Aspect Ratio</Label>
+                    <Select
+                      value={videoAspectRatio}
+                      onValueChange={(val) => setVideoAspectRatio(val || '')}
+                      required
+                      placeholder="Ratio"
+                      triggerClassName="bg-background border-border text-foreground"
+                      options={configs?.filter(c => c.type === 'video_aspect_ratio').map(c => ({ label: c.label, value: c.value })) || []}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="pt-6 flex justify-between items-center border-t border-border">
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="ghost"
                 onClick={onCancel}
                 disabled={isGenerating}
@@ -176,7 +274,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 disabled={isGenerating}
                 className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-transform hover:-translate-y-0.5"

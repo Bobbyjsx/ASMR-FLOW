@@ -41,6 +41,10 @@ export const create = mutation({
         videoError: v.optional(v.string()),
       })
     ),
+    llmModel: v.optional(v.string()),
+    videoModel: v.optional(v.string()),
+    videoResolution: v.optional(v.string()),
+    videoAspectRatio: v.optional(v.string()),
     createdAt: v.number(),
   },
   handler: async (ctx, args) => {
@@ -51,7 +55,13 @@ export const create = mutation({
       asmristId: args.asmristId,
       userId: args.userId,
       scenes: args.scenes,
+      llmModel: args.llmModel,
+      videoModel: args.videoModel,
+      videoResolution: args.videoResolution,
+      videoAspectRatio: args.videoAspectRatio,
       createdAt: args.createdAt,
+      scenes_generated: args.scenes.length,
+      videos_generated: 0,
     });
   },
 });

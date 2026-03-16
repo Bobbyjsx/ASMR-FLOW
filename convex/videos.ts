@@ -52,6 +52,25 @@ export const markError = mutation({
   },
 });
 
+// Retry an errored video generation
+export const retryGeneration = mutation({
+  args: {
+    id: v.id("videos"),
+  },
+  handler: async (ctx, args) => {
+    const video = await ctx.db.get(args.id);
+    if (!video) throw new Error("Video record not found");
+    // Ensure it's not already generating or completed
+    if (video.status === "completed") throw new Error("Video already completed");
+
+    await ctx.db.patch(args.id, {
+      status: "generating",
+      error: undefined,
+      progress: 0,
+    });
+  },
+});
+
 // Complete video generation and link the video to the project scene
 export const completeVideo = mutation({
   args: {
@@ -78,11 +97,18 @@ export const completeVideo = mutation({
     if (project) {
       const scenes = [...project.scenes];
       if (scenes[video.sceneIndex]) {
+        const isFirstVideo = !scenes[video.sceneIndex].videoUrl;
         scenes[video.sceneIndex] = {
           ...scenes[video.sceneIndex],
           videoUrl: url,
         };
-        await ctx.db.patch(video.projectId, { scenes });
+        
+        await ctx.db.patch(video.projectId, { 
+          scenes,
+          videos_generated: isFirstVideo 
+            ? (project.videos_generated || 0) + 1 
+            : project.videos_generated 
+        });
       }
     }
     

@@ -5,7 +5,7 @@ import { Settings as SettingsType } from '@/types';
 import { getSettings, saveSettings } from '@/lib/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 
 export default function Settings() {
   const [settings, setSettingsState] = useState<SettingsType>({ preferredInput: 'text', preferredOutput: 'text' });
@@ -37,15 +37,13 @@ export default function Settings() {
               <Select 
                 value={settings.preferredInput} 
                 onValueChange={(value) => handleChange('preferredInput', value as 'text' | 'json')}
-              >
-                <SelectTrigger id="preferredInput" className="w-full md:w-1/2 bg-background border-border text-foreground">
-                  <SelectValue placeholder="Select input format" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  <SelectItem value="text" className="focus:bg-accent/10 focus:text-foreground">Plain Text</SelectItem>
-                  <SelectItem value="json" className="focus:bg-accent/10 focus:text-foreground">JSON</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Select input format"
+                triggerClassName="w-full md:w-1/2 bg-background border-border text-foreground"
+                options={[
+                  { label: "Plain Text", value: "text" },
+                  { label: "JSON", value: "json" }
+                ]}
+              />
               <p className="text-sm text-muted-foreground">
                 Choose how you prefer to input ASMRist descriptions and themes. If JSON is selected, the app will attempt to format and parse JSON inputs for better readability.
               </p>
@@ -56,15 +54,13 @@ export default function Settings() {
               <Select 
                 value={settings.preferredOutput} 
                 onValueChange={(value) => handleChange('preferredOutput', value as 'text' | 'json')}
-              >
-                <SelectTrigger id="preferredOutput" className="w-full md:w-1/2 bg-background border-border text-foreground">
-                  <SelectValue placeholder="Select output format" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  <SelectItem value="text" className="focus:bg-accent/10 focus:text-foreground">Plain Text</SelectItem>
-                  <SelectItem value="json" className="focus:bg-accent/10 focus:text-foreground">JSON</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Select output format"
+                triggerClassName="w-full md:w-1/2 bg-background border-border text-foreground"
+                options={[
+                  { label: "Plain Text", value: "text" },
+                  { label: "JSON", value: "json" }
+                ]}
+              />
               <p className="text-sm text-muted-foreground">
                 Choose your default format when copying prompts from the storyboard.
               </p>

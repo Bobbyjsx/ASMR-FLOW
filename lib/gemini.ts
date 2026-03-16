@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { GEMINI_API_KEY } from './environment';
 
-export const generateScenes = async (theme: string, length: string, asmristDesc: string) => {
+export const generateScenes = async (theme: string, length: string, asmristDesc: string, model: string = 'gemini-3.1-pro-preview') => {
   const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
   const prompt = `
@@ -21,7 +21,7 @@ CRITICAL INSTRUCTIONS FOR AI VIDEO GENERATION:
 `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3.1-pro-preview',
+    model: model,
     contents: prompt,
     config: {
       responseMimeType: 'application/json',

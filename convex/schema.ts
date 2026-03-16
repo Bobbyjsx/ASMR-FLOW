@@ -35,8 +35,29 @@ export default defineSchema({
         videoError: v.optional(v.string()),
       })
     ),
+    llmModel: v.optional(v.string()),
+    videoModel: v.optional(v.string()),
+    videoResolution: v.optional(v.string()),
+    videoAspectRatio: v.optional(v.string()),
     createdAt: v.number(),
+    scenes_generated: v.optional(v.number()),
+    videos_generated: v.optional(v.number()),
   }).index("by_user", ["userId"]),
+  
+  configurations: defineTable({
+    type: v.union(
+      v.literal("video_model"), 
+      v.literal("llm_model"), 
+      v.literal("video_resolution"), 
+      v.literal("video_aspect_ratio"),
+      v.literal("max_video_generation"),
+      v.literal("max_project_creation")
+    ),
+    label: v.string(),
+    value: v.string(),
+    enabled: v.boolean(),
+    is_default: v.optional(v.boolean()),
+  }).index("by_type", ["type"]).index("by_enabled", ["enabled"]).index("by_type_value", ["type", "value"]),
   
   videos: defineTable({
     projectId: v.id("projects"),

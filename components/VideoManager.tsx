@@ -1,12 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, AlertCircle, PlayCircle, Video as VideoIcon } from 'lucide-react';
+import { VideoPlayer } from '@/components/ui/video-player';
+import { Loader2, AlertCircle, PlayCircle, Video as VideoIcon, Folder, ChevronRight, ArrowLeft } from 'lucide-react';
 
 function timeAgo(dateInput: number) {
   const seconds = Math.floor((Date.now() - dateInput) / 1000);
@@ -25,149 +27,200 @@ function timeAgo(dateInput: number) {
 
 export default function VideoManager() {
   const { userId } = useAuth();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const videos = useQuery(anyApi.videos.list, userId ? { userId } : "skip");
   const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip") || [];
 
   const isLoading = videos === undefined;
   const videoList = videos || [];
 
+  // Group videos by project
+  const projectGroups = videoList.reduce((acc: Record<string, any[]>, video) => {
+    if (!acc[video.projectId]) {
+      acc[video.projectId] = [];
+    }
+    acc[video.projectId].push(video);
+    return acc;
+  }, {});
+
+  const selectedProject = projects.find((p: any) => p._id === selectedProjectId);
+  const filteredVideos = selectedProjectId ? (projectGroups[selectedProjectId] || []) : [];
+
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-8">
-      <div className="flex items-center gap-4 border-b border-border pb-6">
-        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-          <VideoIcon size={24} />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Video Manager</h1>
-          <p className="text-muted-foreground mt-1">Manage and view all your generated scene videos.</p>
+    <div className="max-w-7xl mx-auto p-4 md:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
+        <div className="flex flex-col gap-2">
+          {selectedProjectId && (
+             <button 
+               onClick={() => setSelectedProjectId(null)}
+               className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-medium mb-2 group"
+             >
+               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+               Back to Projects
+             </button>
+          )}
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 leading-none">
+            {selectedProjectId ? selectedProject?.name : "Video Manager"}
+          </h1>
+          {selectedProjectId && (
+            <p className="text-slate-500 font-medium">
+              {filteredVideos.length} {filteredVideos.length === 1 ? 'scene' : 'scenes'} generated
+            </p>
+          )}
         </div>
       </div>
 
       {/* Skeleton State */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {[...Array(3)].map((_, i) => (
-            <Card key={i} className="overflow-hidden flex flex-col border-border bg-card">
-              <Skeleton className="aspect-video w-full" />
-              <CardHeader className="pb-3">
-                <Skeleton className="h-5 w-2/3" />
-                <Skeleton className="h-4 w-1/3 mt-1" />
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Skeleton className="h-3 w-full" />
-                <Skeleton className="h-3 w-5/6" />
-              </CardContent>
-            </Card>
+            <div key={i} className="flex flex-col bg-white border border-slate-200 rounded-[24px] shadow-sm p-0 overflow-hidden space-y-4">
+              <Skeleton className="aspect-[4/3] w-full rounded-none" />
+              <div className="p-6 space-y-4">
+                <Skeleton className="h-6 w-2/3" />
+                <Skeleton className="h-4 w-1/3" />
+                <div className="pt-4 border-t border-slate-100 space-y-2">
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-5/6" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && videoList.length === 0 && (
-        <div className="text-center py-20 px-4 bg-muted/30 rounded-xl border border-dashed border-border">
-          <VideoIcon className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-medium text-foreground">No videos yet</h3>
-          <p className="text-muted-foreground mt-2 max-w-sm mx-auto">Videos you generate for your project scenes will appear here.</p>
+        <div className="col-span-full text-center py-24 text-slate-500 bg-slate-50/50 rounded-[24px] border border-dashed border-slate-200 shadow-sm flex flex-col items-center justify-center">
+          <VideoIcon size={48} className="mb-4 text-slate-300" />
+          <h3 className="text-xl font-bold text-slate-900 mb-2">No videos yet</h3>
+          <p className="text-slate-500 max-w-sm">Videos you generate for your project scenes will appear here.</p>
         </div>
       )}
 
-      {/* Video Grid */}
-      {!isLoading && videoList.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {videoList.map((video: any) => {
-            const project = projects.find((p: any) => p._id === video.projectId);
+      {/* Project Folders View */}
+      {!isLoading && !selectedProjectId && videoList.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {Object.entries(projectGroups).map(([projectId, groupVideos]) => {
+            const project = projects.find((p: any) => p._id === projectId);
             const projectName = project ? project.name : "Unknown Project";
             
             return (
-              <Card key={video._id} className="overflow-hidden flex flex-col border-border shadow-sm bg-card transition-all hover:shadow-md hover:border-primary/20">
+              <button
+                key={projectId}
+                onClick={() => setSelectedProjectId(projectId)}
+                className="group flex flex-col bg-white border border-slate-200 rounded-[24px] shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-slate-300 text-left cursor-pointer"
+              >
+                <div className="p-8 flex items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all duration-300 shadow-inner">
+                    <Folder size={32} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xl font-bold text-slate-900 truncate group-hover:text-slate-900 transition-colors">
+                      {projectName}
+                    </h3>
+                    <p className="text-slate-500 font-medium flex items-center gap-1.5 mt-1">
+                      {groupVideos.length} {groupVideos.length === 1 ? 'scene' : 'scenes'}
+                      <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </p>
+                  </div>
+                </div>
+                <div className="px-8 pb-6 mt-auto">
+                   <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-slate-900/10 w-full" />
+                   </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Scene List View (Inside Folder) */}
+      {!isLoading && selectedProjectId && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {filteredVideos.map((video: any) => {
+            return (
+              <div key={video._id} className="flex flex-col bg-white border border-slate-200 rounded-[24px] shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-slate-300">
                 {/* Media Area */}
-                <div className="aspect-video bg-black relative flex items-center justify-center overflow-hidden border-b border-border">
+                <div className="aspect-[4/3] bg-black relative flex items-center justify-center overflow-hidden">
                   {video.status === 'completed' && video.url ? (
-                    <video 
+                    <VideoPlayer 
                       src={video.url} 
-                      controls 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full"
                     />
                   ) : video.status === 'generating' ? (
                     <div className="flex flex-col items-center text-white/70">
-                      <Loader2 className="animate-spin mb-3 text-primary" size={32} />
-                      <span className="text-sm font-medium tracking-wide">
-                        Generating... {video.progress > 0 && `${Math.round(video.progress)}%`}
+                      <Loader2 className="animate-spin mb-3 text-white" size={32} />
+                      <span className="text-xs font-semibold tracking-widest uppercase">
+                        Generating {video.progress > 0 && `${Math.round(video.progress)}%`}
                       </span>
                     </div>
                   ) : video.status === 'error' ? (
                     <div className="flex flex-col items-center text-red-400">
                       <AlertCircle className="mb-2" size={32} />
-                      <span className="text-sm font-medium">Failed</span>
+                      <span className="text-xs font-semibold tracking-widest uppercase text-red-200">Failed</span>
                     </div>
                   ) : (
-                    <PlayCircle className="text-white/30" size={48} />
+                    <PlayCircle className="text-white/30" size={64} strokeWidth={1} />
                   )}
                   
                   {/* Status Badge Overlays */}
-                  <div className="absolute top-3 right-3 flex gap-2">
+                  <div className="absolute top-4 right-4 flex gap-2">
                     {video.status === 'generating' && (
-                      <Badge variant="outline" className="bg-blue-500/20 text-blue-200 border-blue-500/50 backdrop-blur-sm shadow-sm gap-1.5 px-2.5 py-0.5 whitespace-nowrap">
-                        <Loader2 className="h-3 w-3 animate-spin inline-block" />
+                      <div className="bg-slate-900/80 backdrop-blur-md text-white border border-white/10 shadow-sm flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide">
+                        <Loader2 className="h-3 w-3 animate-spin" />
                         Generating
-                      </Badge>
+                      </div>
                     )}
                     {video.status === 'completed' && (
-                      <Badge variant="outline" className="bg-green-500/20 text-green-200 border-green-500/50 backdrop-blur-sm shadow-sm gap-1.5 px-2.5 py-0.5 whitespace-nowrap">
+                      <div className="bg-slate-900/80 backdrop-blur-md text-white border border-white/10 shadow-sm flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide">
                         <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
                         Ready
-                      </Badge>
+                      </div>
                     )}
                     {video.status === 'error' && (
-                      <Badge variant="outline" className="bg-red-500/20 text-red-200 border-red-500/50 backdrop-blur-sm shadow-sm gap-1.5 px-2.5 py-0.5 whitespace-nowrap">
-                        <AlertCircle className="h-3 w-3 inline-block" />
+                      <div className="bg-red-950/80 backdrop-blur-md text-red-200 border border-red-500/30 shadow-sm flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide">
+                        <AlertCircle className="h-3 w-3" />
                         Error
-                      </Badge>
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* Details Area */}
-                <CardHeader className="pb-3 bg-secondary/30">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <CardTitle className="text-base font-semibold text-foreground line-clamp-1">
-                        {projectName}
-                      </CardTitle>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium">
-                          Scene {video.sceneIndex}
-                        </Badge>
-                      </div>
+                <div className="p-6 flex flex-col flex-grow">
+                  <div className="flex justify-between items-start mb-6">
+                    <h3 className="text-xl font-bold text-slate-900 line-clamp-1 pr-4">
+                      Scene {video.sceneIndex}
+                    </h3>
+                    <div className="bg-slate-100 text-slate-700 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider shrink-0">
+                      #{video._id.slice(-4)}
                     </div>
                   </div>
-                </CardHeader>
-                
-                <CardContent className="pt-4 flex-grow">
-                  {video.error ? (
-                    <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg border border-destructive/20">
-                      {video.error}
-                    </div>
-                  ) : (
-                    <div className="space-y-2.5 text-sm">
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-muted-foreground">ID</span>
-                        <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-foreground">{video._id.slice(-8)}</span>
+                  
+                  <div className="pt-6 border-t border-slate-100 flex-grow">
+                    {video.error ? (
+                      <div className="bg-red-50 text-red-700 text-sm p-4 rounded-xl border border-red-100 font-medium">
+                        {video.error}
                       </div>
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-muted-foreground">Status</span>
-                        <span className="capitalize font-medium text-foreground">{video.status}</span>
-                      </div>
-                      {video._creationTime && (
-                        <div className="flex justify-between items-center py-1">
-                          <span className="text-muted-foreground">Created</span>
-                          <span className="text-foreground">{timeAgo(video._creationTime)}</span>
+                    ) : (
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500 font-medium">Status</span>
+                          <span className="capitalize font-bold text-slate-900">{video.status}</span>
                         </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                        {video._creationTime && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-500 font-medium">Created</span>
+                            <span className="text-slate-900 font-medium">{timeAgo(video._creationTime)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
