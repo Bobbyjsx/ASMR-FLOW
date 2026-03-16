@@ -1,0 +1,5 @@
+{
+  "name": "ASMR Flow",
+  "description": "An ASMR video prompt scene generator that automates the creation of 8-second scenes with entry and exit animations, and generates videos using Veo.",
+  "requestFramePermissions": []
+}
