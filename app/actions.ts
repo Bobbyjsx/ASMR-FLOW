@@ -1,7 +1,14 @@
-import { GoogleGenAI, Type } from '@google/genai';
-import { GEMINI_API_KEY } from './environment';
+'use server';
 
-export const generateScenes = async (theme: string, length: string, asmristDesc: string, model: string = 'gemini-3.1-pro-preview') => {
+import { GoogleGenAI, Type } from '@google/genai';
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+export async function generateScenesAction(theme: string, length: string, asmristDesc: string, model: string = 'gemini-3.1-pro-preview') {
+  if (!GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is not configured on the server.');
+  }
+
   const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
   const prompt = `
@@ -52,6 +59,73 @@ CRITICAL INSTRUCTIONS FOR AI VIDEO GENERATION:
     return JSON.parse(response.text || '[]');
   } catch (e) {
     console.error("Failed to parse JSON response", e);
-    return [];
+    throw new Error("Failed to parse AI response.");
   }
-};
+}
+
+interface VideoGenerationOptions {
+  model?: string;
+  resolution?: string;
+  aspectRatio?: string;
+}
+
+export async function startVideoGenerationAction(scenePrompt: string, options?: VideoGenerationOptions) {
+  if (!GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is not configured on the server.');
+  }
+
+  const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
+  const operation = await ai.models.generateVideos({
+    model: options?.model || 'veo-3.1-fast-generate-preview',
+    prompt: scenePrompt,
+    config: {
+      numberOfVideos: 1,
+      resolution: options?.resolution || '1080p',
+      aspectRatio: options?.aspectRatio || '16:9'
+    }
+  });
+
+  return operation.name;
+}
+
+export async function checkVideoOperationAction(operationName: string) {
+  if (!GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is not configured on the server.');
+  }
+  
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1alpha/${operationName}?key=${GEMINI_API_KEY}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to check video operation: ${response.statusText}`);
+  }
+
+  const operation = await response.json();
+  return operation;
+}
+
+export async function downloadVideoAsBase64Action(uri: string) {
+  if (!GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is not configured on the server.');
+  }
+  
+  const response = await fetch(uri, {
+    method: 'GET',
+    headers: {
+      'x-goog-api-key': GEMINI_API_KEY,
+    },
+  });
+
+  if (!response.ok) throw new Error("Failed to download video from URI on server.");
+
+  const arrayBuffer = await response.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString('base64');
+  const contentType = response.headers.get('content-type') || 'video/mp4';
+
+  return { base64, contentType };
+}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import { Scene } from '@/types';
 import { getProjects, updateProject, getSettings } from '@/lib/store';
-import { startVideoGeneration } from '@/lib/veo';
+import { startVideoGenerationAction } from '@/app/actions';
 import { Copy, Video, Loader2, AlertCircle, PlayCircle, FileText, Braces, ArrowLeft, History, RefreshCw } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { anyApi } from 'convex/server';
@@ -59,7 +59,7 @@ Action: ${scene.entry_animation} Then they say: "${scene.dialogue_words}" ${scen
 Triggers: ${scene.audio_visual_triggers}
       `.trim();
 
-      const operationId = await startVideoGeneration(prompt, {
+      const operationId = await startVideoGenerationAction(prompt, {
         model: project.videoModel,
         resolution: project.videoResolution,
         aspectRatio: project.videoAspectRatio

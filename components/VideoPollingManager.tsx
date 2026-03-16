@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { Doc } from '@/convex/_generated/dataModel';
 import { anyApi } from 'convex/server';
-import { checkVideoOperation, downloadVideoBlob } from '@/lib/veo';
+import { checkVideoOperationAction, downloadVideoAsBase64Action } from '@/app/actions';
 import { useAuth } from '@/components/AuthProvider';
 import { successToast, errorToast } from '@/lib/toast';
 
@@ -30,7 +30,7 @@ export default function VideoPollingManager() {
           await new Promise(resolve => setTimeout(resolve, 5000));
 
           while (true) {
-            const operation = await checkVideoOperation(video?.operationId || "");
+            const operation = await checkVideoOperationAction(video?.operationId || "");
 
             if (operation.done) {
               const uri = operation.response?.generatedVideos?.[0]?.video?.uri ||
@@ -41,7 +41,14 @@ export default function VideoPollingManager() {
                 throw new Error("No video URI in completed operation");
               }
 
-              const blob = await downloadVideoBlob(uri);
+              const { base64, contentType } = await downloadVideoAsBase64Action(uri);
+              const byteCharacters = atob(base64);
+              const byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              const blob = new Blob([byteArray], { type: contentType });
 
               // Upload to Convex
               const uploadUrl = await generateUploadUrl();

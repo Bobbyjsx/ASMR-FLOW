@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Doc } from '@/convex/_generated/dataModel';
 import { AVAILABLE_LLM_MODELS, AVAILABLE_VIDEO_MODELS, AVAILABLE_RESOLUTIONS, AVAILABLE_ASPECT_RATIOS } from '@/types';
 import { getASMRists, saveProject } from '@/lib/store';
-import { generateScenes } from '@/lib/gemini';
+import { generateScenesAction } from '@/app/actions';
 import { Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { anyApi } from 'convex/server';
@@ -84,12 +84,12 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
       // Check project creation limit
       const maxProjectsConfig = configs?.find((c: Doc<"configurations">) => c.type === 'max_project_creation');
       const maxProjects = maxProjectsConfig ? parseInt(maxProjectsConfig.value, 10) : Infinity;
-      
+
       if ((projects?.length || 0) >= maxProjects) {
         throw new Error(`Project limit reached (${maxProjects}). Please delete an existing project before creating a new one.`);
       }
 
-      const scenes = await generateScenes(theme, length, selectedAsmrist.description, llmModel);
+      const scenes = await generateScenesAction(theme, length, selectedAsmrist.description, llmModel);
 
       if (!scenes || scenes.length === 0) {
         throw new Error("Failed to generate scenes. Please try again.");
@@ -208,7 +208,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
             </div>
 
             {/* Advanced Settings Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-border">
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Script Settings</h3>
                 <div className="space-y-2">
@@ -236,7 +236,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
                     triggerClassName="bg-background border-border text-foreground h-auto text-left"
                     options={configs?.filter(c => c.type === 'video_model').map(c => ({ label: c.label, value: c.value })) || []}
                   />
-                  
+
                   {videoModel === 'veo-2.0-generate-001' && (
                     <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3 animate-in fade-in duration-300">
                       <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={16} />
@@ -248,7 +248,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
                 </div>
 
                 {videoModel !== 'veo-2.0-generate-001' && (
-                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="space-y-2">
                       <Label htmlFor="resolution" className="text-foreground text-xs font-bold tracking-widest uppercase">Resolution</Label>
                       <Select
@@ -256,7 +256,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
                         onValueChange={(val) => setVideoResolution(val || '')}
                         required
                         placeholder="Resolution"
-                        triggerClassName="bg-background border-border text-foreground"
+                        triggerClassName="bg-background border-border text-foreground h-auto text-left"
                         options={configs?.filter(c => c.type === 'video_resolution').map(c => ({ label: c.label, value: c.value })) || []}
                       />
                     </div>
@@ -267,7 +267,7 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
                         onValueChange={(val) => setVideoAspectRatio(val || '')}
                         required
                         placeholder="Ratio"
-                        triggerClassName="bg-background border-border text-foreground"
+                        triggerClassName="bg-background border-border text-foreground h-auto text-left"
                         options={configs?.filter(c => c.type === 'video_aspect_ratio').map(c => ({ label: c.label, value: c.value })) || []}
                       />
                     </div>

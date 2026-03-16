@@ -22,7 +22,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/auth" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">Sign In</Link>
-            <Button asChild className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 whitespace-nowrap">
+            <Button className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 whitespace-nowrap">
               <Link href="/auth">Start Free Trial</Link>
             </Button>
           </div>
@@ -45,7 +45,6 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <Button
-              asChild
               size="lg"
               className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-xl shadow-primary/20 w-full sm:w-auto text-lg h-14 px-10 font-bold transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
             >
@@ -295,7 +294,6 @@ export default function LandingPage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
               <Button
-                asChild
                 size="lg"
                 className="h-16 px-12 text-lg rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-105 active:scale-95 font-bold whitespace-nowrap"
               >
