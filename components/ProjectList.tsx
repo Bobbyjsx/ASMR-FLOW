@@ -2,6 +2,7 @@
 
 import { Plus, Trash2, Film } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import { anyApi } from 'convex/server';
 import { useAuth } from '@/components/AuthProvider';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,13 +15,13 @@ interface ProjectListProps {
 
 export default function ProjectList({ onNewProject, onSelectProject }: ProjectListProps) {
   const { userId } = useAuth();
-  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip");
+  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip") as Doc<"projects">[] | undefined;
   const deleteProject = useMutation(anyApi.projects.remove);
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: Id<"projects">) => {
     e.stopPropagation();
     try {
-      await deleteProject({ id: id as any, userId: userId! });
+      await deleteProject({ id, userId: userId! });
       successToast("Project deleted.");
     } catch (err) {
       errorToast(err);
@@ -76,7 +77,7 @@ export default function ProjectList({ onNewProject, onSelectProject }: ProjectLi
           </div>
         )}
 
-        {!isLoading && projects.map((project: any) => (
+        {!isLoading && projects && projects.map((project: Doc<"projects">) => (
           <div 
             key={project._id} 
             onClick={() => onSelectProject(project._id)}

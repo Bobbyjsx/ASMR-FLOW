@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useQuery, useMutation } from 'convex/react';
+import { Doc } from '@/convex/_generated/dataModel';
 import { anyApi } from 'convex/server';
 import { checkVideoOperation, downloadVideoBlob } from '@/lib/veo';
 import { useAuth } from '@/components/AuthProvider';
@@ -9,7 +10,7 @@ import { successToast, errorToast } from '@/lib/toast';
 
 export default function VideoPollingManager() {
   const { userId } = useAuth();
-  const generatingVideos = useQuery(anyApi.videos.getGenerating, userId ? { userId } : "skip") || [];
+  const generatingVideos = useQuery(anyApi.videos.getGenerating, userId ? { userId } : "skip") as Doc<"videos">[] | undefined;
   const markError = useMutation(anyApi.videos.markError);
   const completeVideo = useMutation(anyApi.videos.completeVideo);
   const generateUploadUrl = useMutation(anyApi.videos.generateUploadUrl);
@@ -17,7 +18,8 @@ export default function VideoPollingManager() {
   const pollingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    generatingVideos.forEach((video: any) => {
+    if (!generatingVideos) return;
+    generatingVideos.forEach((video: Doc<"videos">) => {
       if (!video.operationId || pollingRef.current.has(video._id)) return;
       
       const poll = async () => {

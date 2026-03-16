@@ -11,7 +11,7 @@ export default function Settings() {
   const [settings, setSettingsState] = useState<SettingsType>({ preferredInput: 'text', preferredOutput: 'text' });
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setSettingsState(getSettings());
   }, []);
 

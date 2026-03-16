@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Doc } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { useAuth } from '@/components/AuthProvider';
@@ -28,14 +29,14 @@ function timeAgo(dateInput: number) {
 export default function VideoManager() {
   const { userId } = useAuth();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const videos = useQuery(anyApi.videos.list, userId ? { userId } : "skip");
-  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip") || [];
+  const videos = useQuery(anyApi.videos.list, userId ? { userId } : "skip") as Doc<"videos">[] | undefined;
+  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip") as Doc<"projects">[] | undefined;
 
   const isLoading = videos === undefined;
   const videoList = videos || [];
 
   // Group videos by project
-  const projectGroups = videoList.reduce((acc: Record<string, any[]>, video) => {
+  const projectGroups = videoList.reduce((acc: Record<string, Doc<"videos">[]>, video) => {
     if (!acc[video.projectId]) {
       acc[video.projectId] = [];
     }
@@ -43,7 +44,7 @@ export default function VideoManager() {
     return acc;
   }, {});
 
-  const selectedProject = projects.find((p: any) => p._id === selectedProjectId);
+  const selectedProject = projects?.find((p: Doc<"projects">) => p._id === selectedProjectId);
   const filteredVideos = selectedProjectId ? (projectGroups[selectedProjectId] || []) : [];
 
   return (
@@ -51,13 +52,13 @@ export default function VideoManager() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
         <div className="flex flex-col gap-2">
           {selectedProjectId && (
-             <button 
-               onClick={() => setSelectedProjectId(null)}
-               className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-medium mb-2 group"
-             >
-               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-               Back to Projects
-             </button>
+            <button
+              onClick={() => setSelectedProjectId(null)}
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-medium mb-2 group"
+            >
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              Back to Projects
+            </button>
           )}
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 leading-none">
             {selectedProjectId ? selectedProject?.name : "Video Manager"}
@@ -102,9 +103,9 @@ export default function VideoManager() {
       {!isLoading && !selectedProjectId && videoList.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {Object.entries(projectGroups).map(([projectId, groupVideos]) => {
-            const project = projects.find((p: any) => p._id === projectId);
+            const project = projects?.find((p: Doc<"projects">) => p._id === projectId);
             const projectName = project ? project.name : "Unknown Project";
-            
+
             return (
               <button
                 key={projectId}
@@ -126,9 +127,9 @@ export default function VideoManager() {
                   </div>
                 </div>
                 <div className="px-8 pb-6 mt-auto">
-                   <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-slate-900/10 w-full" />
-                   </div>
+                  <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-900/10 w-full" />
+                  </div>
                 </div>
               </button>
             );
@@ -139,21 +140,21 @@ export default function VideoManager() {
       {/* Scene List View (Inside Folder) */}
       {!isLoading && selectedProjectId && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {filteredVideos.map((video: any) => {
+          {filteredVideos.map((video: Doc<"videos">) => {
             return (
               <div key={video._id} className="flex flex-col bg-white border border-slate-200 rounded-[24px] shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-slate-300">
                 {/* Media Area */}
                 <div className="aspect-[4/3] bg-black relative flex items-center justify-center overflow-hidden">
                   {video.status === 'completed' && video.url ? (
-                    <VideoPlayer 
-                      src={video.url} 
+                    <VideoPlayer
+                      src={video.url}
                       className="w-full h-full"
                     />
                   ) : video.status === 'generating' ? (
                     <div className="flex flex-col items-center text-white/70">
                       <Loader2 className="animate-spin mb-3 text-white" size={32} />
                       <span className="text-xs font-semibold tracking-widest uppercase">
-                        Generating {video.progress > 0 && `${Math.round(video.progress)}%`}
+                        Generating {(video?.progress || 0) > 0 && `${Math.round(video.progress || 0)}%`}
                       </span>
                     </div>
                   ) : video.status === 'error' ? (
@@ -164,7 +165,7 @@ export default function VideoManager() {
                   ) : (
                     <PlayCircle className="text-white/30" size={64} strokeWidth={1} />
                   )}
-                  
+
                   {/* Status Badge Overlays */}
                   <div className="absolute top-4 right-4 flex gap-2">
                     {video.status === 'generating' && (
@@ -198,7 +199,7 @@ export default function VideoManager() {
                       #{video._id.slice(-4)}
                     </div>
                   </div>
-                  
+
                   <div className="pt-6 border-t border-slate-100 flex-grow">
                     {video.error ? (
                       <div className="bg-red-50 text-red-700 text-sm p-4 rounded-xl border border-red-100 font-medium">

@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useMutation } from "convex/react";
 import { anyApi } from "convex/server";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   userId: string | null;
@@ -13,18 +13,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   userId: null,
-  login: async () => {},
-  signup: async () => {},
-  logout: () => {},
+  login: async () => { },
+  signup: async () => { },
+  logout: () => { },
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  
+
   const loginMutation = useMutation(anyApi.auth.login);
   const signupMutation = useMutation(anyApi.auth.signup);
-  
+
   const router = useRouter();
 
   useEffect(() => {

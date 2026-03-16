@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Project, Scene } from '@/types';
+import { Doc, Id } from '@/convex/_generated/dataModel';
+import { Scene } from '@/types';
 import { getProjects, updateProject, getSettings } from '@/lib/store';
 import { startVideoGeneration } from '@/lib/veo';
 import { Copy, Video, Loader2, AlertCircle, PlayCircle, FileText, Braces, ArrowLeft, History, RefreshCw } from 'lucide-react';
@@ -20,16 +21,16 @@ interface ProjectViewerProps {
 
 export default function ProjectViewer({ projectId, onBack }: ProjectViewerProps) {
   const { userId } = useAuth();
-  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip") || [];
-  const project = projects.find((p: any) => p._id === projectId);
+  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip") as Doc<"projects">[] | undefined;
+  const project = projects?.find((p: Doc<"projects">) => p._id === projectId);
 
   const createVideo = useMutation(anyApi.videos.create);
   const retryGeneration = useMutation(anyApi.videos.retryGeneration);
-  const allVideos = useQuery(anyApi.videos.list, userId ? { userId } : "skip") || [];
-  const configs = useQuery(anyApi.configurations.listEnabled);
-  const projectVideos = allVideos.filter((v: any) => v.projectId === projectId);
+  const allVideos = useQuery(anyApi.videos.list, userId ? { userId } : "skip") as Doc<"videos">[] | undefined;
+  const configs = useQuery(anyApi.configurations.listEnabled) as Doc<"configurations">[] | undefined;
+  const projectVideos = allVideos?.filter((v: Doc<"videos">) => v.projectId === projectId) || [];
 
-  const projectGeneratingVideos = projectVideos.filter((v: any) => v.status === 'generating');
+  const projectGeneratingVideos = projectVideos.filter((v: Doc<"videos">) => v.status === 'generating');
 
   const [localGeneratingState, setLocalGeneratingState] = useState<Record<number, boolean>>({});
   const [localErrorState, setLocalErrorState] = useState<Record<number, string | undefined>>({});
@@ -43,7 +44,7 @@ export default function ProjectViewer({ projectId, onBack }: ProjectViewerProps)
 
     try {
       // Check video generation limit
-      const maxVideosConfig = configs?.find(c => c.type === 'max_video_generation');
+      const maxVideosConfig = configs?.find((c: Doc<"configurations">) => c.type === 'max_video_generation');
       const maxVideos = maxVideosConfig ? parseInt(maxVideosConfig.value, 10) : Infinity;
       
       if ((project.videos_generated || 0) >= maxVideos) {
@@ -65,7 +66,7 @@ Triggers: ${scene.audio_visual_triggers}
       });
 
       await createVideo({
-        projectId: projectId as any,
+        projectId: projectId as Id<"projects">,
         sceneIndex,
         operationId
       });
@@ -167,18 +168,18 @@ Triggers: ${scene.audio_visual_triggers}
             ? parseInt(durationStr.split(':')[0], 10) * 60 + parseInt(durationStr.split(':')[1], 10) 
             : parseInt(durationStr, 10) || 0;
 
-          const sceneVideos = projectVideos.filter((v: any) => v.sceneIndex === index);
-          const completedVideos = sceneVideos.filter((v: any) => v.status === 'completed' && v.url);
-          completedVideos.sort((a: any, b: any) => b._creationTime - a._creationTime);
+          const sceneVideos = projectVideos.filter((v: Doc<"videos">) => v.sceneIndex === index);
+          const completedVideos = sceneVideos.filter((v: Doc<"videos">) => v.status === 'completed' && v.url);
+          completedVideos.sort((a: Doc<"videos">, b: Doc<"videos">) => (b._creationTime || 0) - (a._creationTime || 0));
 
-          const activeVideo = projectGeneratingVideos.find((v: any) => v.sceneIndex === index);
+          const activeVideo = projectGeneratingVideos.find((v: Doc<"videos">) => v.sceneIndex === index);
           const isGenerating = localGeneratingState[index] || !!activeVideo;
-          const error = localErrorState[index] || sceneVideos.find((v: any) => v.status === 'error')?.error;
+          const error = localErrorState[index] || sceneVideos.find((v: Doc<"videos">) => v.status === 'error')?.error;
           const progress = activeVideo ? Math.round(activeVideo.progress || 0) : 0;
 
           let displayUrl = scene.videoUrl;
           if (selectedVideoIds[index]) {
-            displayUrl = completedVideos.find((v: any) => v._id === selectedVideoIds[index])?.url || displayUrl;
+            displayUrl = completedVideos.find((v: Doc<"videos">) => v._id === selectedVideoIds[index])?.url || displayUrl;
           } else if (completedVideos.length > 0) {
             displayUrl = completedVideos[0].url;
           }
@@ -234,7 +235,7 @@ Triggers: ${scene.audio_visual_triggers}
                       value={selectedVideoIds[index] || completedVideos[0]._id}
                       onChange={(e) => setSelectedVideoIds(prev => ({ ...prev, [index]: e.target.value }))}
                     >
-                      {completedVideos.map((v: any, i: number) => (
+                      {completedVideos.map((v: Doc<"videos">, i: number) => (
                         <option key={v._id} value={v._id}>
                           Generation {completedVideos.length - i} {i === 0 ? '(Latest)' : ''}
                         </option>

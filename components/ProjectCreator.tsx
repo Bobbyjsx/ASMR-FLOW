@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ASMRist, Project, AVAILABLE_LLM_MODELS, AVAILABLE_VIDEO_MODELS, AVAILABLE_RESOLUTIONS, AVAILABLE_ASPECT_RATIOS } from '@/types';
+import { Doc } from '@/convex/_generated/dataModel';
+import { AVAILABLE_LLM_MODELS, AVAILABLE_VIDEO_MODELS, AVAILABLE_RESOLUTIONS, AVAILABLE_ASPECT_RATIOS } from '@/types';
 import { getASMRists, saveProject } from '@/lib/store';
 import { generateScenes } from '@/lib/gemini';
 import { Loader2, ArrowRight } from 'lucide-react';
@@ -22,10 +23,10 @@ interface ProjectCreatorProps {
 
 export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCreatorProps) {
   const { userId } = useAuth();
-  const asmrists = useQuery(anyApi.asmrists.get, userId ? { userId } : "skip");
-  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip");
+  const asmrists = useQuery(anyApi.asmrists.get, userId ? { userId } : "skip") as Doc<"asmrists">[] | undefined;
+  const projects = useQuery(anyApi.projects.get, userId ? { userId } : "skip") as Doc<"projects">[] | undefined;
   const createProject = useMutation(anyApi.projects.create);
-  const configs = useQuery(anyApi.configurations.listEnabled);
+  const configs = useQuery(anyApi.configurations.listEnabled) as Doc<"configurations">[] | undefined;
 
   const [selectedAsmristId, setSelectedAsmristId] = useState('');
   const [theme, setTheme] = useState('');
@@ -49,15 +50,15 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
   // Set default configurations
   useEffect(() => {
     if (configs && configs.length > 0) {
-      const llmModels = configs.filter(c => c.type === 'llm_model');
-      const videoModels = configs.filter(c => c.type === 'video_model');
-      const resolutions = configs.filter(c => c.type === 'video_resolution');
-      const aspectRatios = configs.filter(c => c.type === 'video_aspect_ratio');
+      const llmModels = configs.filter((c: Doc<"configurations">) => c.type === 'llm_model');
+      const videoModels = configs.filter((c: Doc<"configurations">) => c.type === 'video_model');
+      const resolutions = configs.filter((c: Doc<"configurations">) => c.type === 'video_resolution');
+      const aspectRatios = configs.filter((c: Doc<"configurations">) => c.type === 'video_aspect_ratio');
 
-      const defaultLlm = llmModels.find(c => c.is_default) || llmModels[0];
-      const defaultVideo = videoModels.find(c => c.is_default) || videoModels[0];
-      const defaultResolution = resolutions.find(c => c.is_default) || resolutions[0];
-      const defaultAspectRatio = aspectRatios.find(c => c.is_default) || aspectRatios[0];
+      const defaultLlm = llmModels.find((c: Doc<"configurations">) => c.is_default) || llmModels[0];
+      const defaultVideo = videoModels.find((c: Doc<"configurations">) => c.is_default) || videoModels[0];
+      const defaultResolution = resolutions.find((c: Doc<"configurations">) => c.is_default) || resolutions[0];
+      const defaultAspectRatio = aspectRatios.find((c: Doc<"configurations">) => c.is_default) || aspectRatios[0];
 
       if (defaultLlm && !llmModel) setLlmModel(defaultLlm.value);
       if (defaultVideo && !videoModel) setVideoModel(defaultVideo.value);
@@ -77,11 +78,11 @@ export default function ProjectCreator({ onProjectCreated, onCancel }: ProjectCr
     setError('');
 
     try {
-      const selectedAsmrist = asmrists?.find((a: any) => a._id === selectedAsmristId);
+      const selectedAsmrist = asmrists?.find((a: Doc<"asmrists">) => a._id === selectedAsmristId);
       if (!selectedAsmrist) throw new Error("ASMRist not found");
 
       // Check project creation limit
-      const maxProjectsConfig = configs?.find(c => c.type === 'max_project_creation');
+      const maxProjectsConfig = configs?.find((c: Doc<"configurations">) => c.type === 'max_project_creation');
       const maxProjects = maxProjectsConfig ? parseInt(maxProjectsConfig.value, 10) : Infinity;
       
       if ((projects?.length || 0) >= maxProjects) {

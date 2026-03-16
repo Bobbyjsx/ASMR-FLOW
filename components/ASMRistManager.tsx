@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ASMRist } from '@/types';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import { Plus, Trash2, Users } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { anyApi } from 'convex/server';
@@ -16,7 +16,7 @@ import { successToast, errorToast } from '@/lib/toast';
 
 export default function ASMRistManager() {
   const { userId } = useAuth();
-  const asmrists = useQuery(anyApi.asmrists.get, userId ? { userId } : "skip");
+  const asmrists = useQuery(anyApi.asmrists.get, userId ? { userId } : "skip") as Doc<"asmrists">[] | undefined;
   const createAsmrist = useMutation(anyApi.asmrists.create);
   const deleteAsmrist = useMutation(anyApi.asmrists.remove);
 
@@ -42,9 +42,9 @@ export default function ASMRistManager() {
     }
   };
 
-  const handleDelete = async (id: string, asmristName: string) => {
+  const handleDelete = async (id: Id<"asmrists">, asmristName: string) => {
     try {
-      await deleteAsmrist({ id: id as any, userId: userId! });
+      await deleteAsmrist({ id, userId: userId! });
       successToast(`"${asmristName}" deleted.`);
     } catch (err) {
       errorToast(err);
@@ -165,7 +165,7 @@ export default function ASMRistManager() {
           </div>
         )}
 
-        {!isLoading && asmrists.map((asmrist: any) => (
+        {!isLoading && asmrists && asmrists.map((asmrist: Doc<"asmrists">) => (
           <div key={asmrist._id} className="group flex flex-col bg-white border border-slate-200 rounded-[24px] shadow-sm p-6 relative overflow-hidden transition-all hover:shadow-md hover:border-slate-300">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-2xl font-bold text-slate-900 pr-8">{asmrist.name}</h3>
