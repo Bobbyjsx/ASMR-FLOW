@@ -9,6 +9,8 @@ interface AuthContextType {
   login: (identifier: string, pass: string) => Promise<void>;
   signup: (email: string, username: string, pass: string) => Promise<void>;
   logout: () => void;
+  requestPasswordReset: (email: string) => Promise<string>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,6 +18,8 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => { },
   signup: async () => { },
   logout: () => { },
+  requestPasswordReset: async () => "",
+  resetPassword: async () => { },
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -24,6 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation(anyApi.auth.login);
   const signupMutation = useMutation(anyApi.auth.signup);
+  const requestPasswordResetMutation = useMutation(anyApi.auth.requestPasswordReset);
+  const resetPasswordMutation = useMutation(anyApi.auth.resetPassword);
 
   const router = useRouter();
 
@@ -58,13 +64,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/landing');
   };
 
+  const requestPasswordReset = async (email: string) => {
+    return await requestPasswordResetMutation({ email }) as string;
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    await resetPasswordMutation({ token, newPassword });
+  };
+
   // While initializing, don't flash children for protected pages if they might not have auth
   if (isInitializing) {
     return null; // Return empty or a loading spinner
   }
 
   return (
-    <AuthContext.Provider value={{ userId, login, signup, logout }}>
+    <AuthContext.Provider value={{ userId, login, signup, logout, requestPasswordReset, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

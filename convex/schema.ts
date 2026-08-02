@@ -6,7 +6,9 @@ export default defineSchema({
     email: v.string(),
     username: v.string(),
     passwordHash: v.string(),
-  }).index("by_email", ["email"]).index("by_username", ["username"]),
+    resetTokenHash: v.optional(v.string()),
+    resetTokenExpiresAt: v.optional(v.number()),
+  }).index("by_email", ["email"]).index("by_username", ["username"]).index("by_reset_token", ["resetTokenHash"]),
   
   asmrists: defineTable({
     name: v.string(),

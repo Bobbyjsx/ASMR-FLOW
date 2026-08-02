@@ -83,3 +83,65 @@ export const getUser = query({
     return await ctx.db.get(args.userId);
   },
 });
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+function generateResetToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export const requestPasswordReset = mutation({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (!user) {
+      throw new Error("No account found with that email address.");
+    }
+
+    const token = generateResetToken();
+    const tokenHash = await hashPassword(token);
+
+    await ctx.db.patch(user._id, {
+      resetTokenHash: tokenHash,
+      resetTokenExpiresAt: Date.now() + RESET_TOKEN_TTL_MS,
+    });
+
+    return token;
+  },
+});
+
+export const resetPassword = mutation({
+  args: { token: v.string(), newPassword: v.string() },
+  handler: async (ctx, args) => {
+    const tokenHash = await hashPassword(args.token);
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_reset_token", (q) => q.eq("resetTokenHash", tokenHash))
+      .first();
+
+    if (!user) {
+      throw new Error("Invalid or expired reset token.");
+    }
+
+    if (!user.resetTokenExpiresAt || user.resetTokenExpiresAt < Date.now()) {
+      throw new Error("This reset token has expired. Please request a new one.");
+    }
+
+    const passwordHash = await hashPassword(args.newPassword);
+
+    await ctx.db.patch(user._id, {
+      passwordHash,
+      resetTokenHash: undefined,
+      resetTokenExpiresAt: undefined,
+    });
+  },
+});
